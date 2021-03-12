@@ -1,6 +1,6 @@
 // selecting elements by class
 
-const cartBtn = document.querySelector(".cart-btn");
+const shoppingCartBtn = document.querySelector(".shopping-cart-btn");
 const closeCartBtn = document.querySelector(".close-cart");
 const clearCartBtn = document.querySelector(".clear-cart");
 const cartDOM = document.querySelector(".cart");
@@ -142,7 +142,7 @@ class UI {
     cart = Storage.getCart();
     this.setCartValues(cart);
     this.populateCart(cart);
-    cartBtn.addEventListener("click", this.showCart);
+    shoppingCartBtn.addEventListener("click", this.showCart);
     closeCartBtn.addEventListener("click", this.hideCart);
   }
   populateCart(cart) {
@@ -156,6 +156,55 @@ class UI {
     // clear cart button
     clearCartBtn.addEventListener("click", () => this.clearCart());
     // cart functionality
+    // event listeners using bubbling
+    cartContent.addEventListener("click", (event) => {
+      console.log(event.target);
+
+      // removing item
+      if (event.target.classList.contains("remove-item")) {
+        let removeItem = event.target;
+        let id = removeItem.dataset.id;
+        console.log("id: ", id);
+        //removing from the DOM
+        console.log(
+          "cart item to be removed: ",
+          removeItem.parentElement.parentElement
+        );
+        cartContent.removeChild(removeItem.parentElement.parentElement);
+        // removing from the cart
+        this.removeItem(id);
+      }
+      // handling increase amounts in the cart
+      else if (event.target.classList.contains("fa-chevron-up")) {
+        let addAmount = event.target;
+        let id = addAmount.dataset.id;
+        let tempItem = cart.find((item) => item.id === id);
+        tempItem.amount = tempItem.amount + 1;
+        // save to the localStorage
+        Storage.saveCart(cart);
+        // new total
+        this.setCartValues(cart);
+        // new amount displayed
+        addAmount.nextElementSibling.innerText = tempItem.amount;
+      }
+      // handling decrease amounts in the cart
+      else if (event.target.classList.contains("fa-chevron-down")) {
+        let lowerAmount = event.target;
+        let id = lowerAmount.dataset.id;
+        let tempItem = cart.find((item) => item.id === id);
+        tempItem.amount = tempItem.amount - 1;
+        if (tempItem.amount > 0) {
+          // save to the localStorage
+          Storage.saveCart(cart);
+          // new total
+          this.setCartValues(cart);
+          // new amount displayed
+          lowerAmount.previousElementSibling.innerText = tempItem.amount;
+        } else {
+          cartContent.removeChild(lowerAmount.parentElement.parentElement);
+        }
+      }
+    });
   }
   clearCart() {
     // get all items in the cart by id
